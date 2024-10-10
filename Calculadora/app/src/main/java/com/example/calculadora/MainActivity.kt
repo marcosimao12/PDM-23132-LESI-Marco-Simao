@@ -38,8 +38,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             CalculadoraTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
+                    Calculadora(
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -48,18 +47,49 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
 @Preview(showBackground = true)
 @Composable
-fun Calculadora() {
+fun Calculadora(modifier: Modifier = Modifier) {
     var displayText by remember { mutableStateOf("") }
+    var numeroAtual by remember { mutableStateOf("") }
+    var numeroAnterior by remember { mutableStateOf("") }
+    var operador by remember { mutableStateOf<Char?>(null) }
+
+    fun onNumeroClick(numero: String) {
+        if (operador == null) {
+            numeroAtual += numero
+        } else {
+            numeroAtual = numero
+        }
+        displayText = numeroAtual
+    }
+
+    fun onOperadorClick(op: Char) {
+        if (numeroAtual.isNotEmpty()) {
+            numeroAnterior = numeroAtual
+            numeroAtual = ""
+            operador = op
+        }
+    }
+
+    fun onIgualClick() {
+        val n1 = numeroAnterior.toDoubleOrNull()
+        val n2 = numeroAtual.toDoubleOrNull()
+
+        if (n1 != null && n2 != null && operador != null) {
+            val resultado = when (operador) {
+                '+' -> n1 + n2
+                '-' -> n1 - n2
+                '*' -> n1 * n2
+                '/' -> if (n2 != 0.0) n1 / n2 else "Erro"
+                else -> null
+            }
+            displayText = resultado.toString()
+            numeroAtual = resultado.toString()
+            numeroAnterior = ""
+            operador = null
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -146,7 +176,11 @@ fun Calculadora() {
                     Text(text = "+/-")
                 }
                 Button1(
-                    onClick = { },
+                    onClick = {
+                        displayText = ""
+                        numeroAtual = ""
+                        numeroAnterior = ""
+                    },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
                 ) { Text(text = "CE") }
@@ -157,28 +191,28 @@ fun Calculadora() {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Button1(
-                    onClick = { },
+                    onClick = { onNumeroClick("7") },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
                 ) {
                     Text(text = "7")
                 }
                 Button1(
-                    onClick = { },
+                    onClick = { onNumeroClick("8") },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
                 ) {
                     Text(text = "8")
                 }
                 Button1(
-                    onClick = { },
+                    onClick = { onNumeroClick("9") },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
                 ) {
                     Text(text = "9")
                 }
                 Button1(
-                    onClick = { },
+                    onClick = { onOperadorClick('/') },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
                 ) { Text(text = "/") }
@@ -209,7 +243,7 @@ fun Calculadora() {
                     Text(text = "6")
                 }
                 Button1(
-                    onClick = { },
+                    onClick = { onOperadorClick('*') },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
                 ) { Text(text = "*") }
@@ -240,7 +274,7 @@ fun Calculadora() {
                     Text(text = "3")
                 }
                 Button1(
-                    onClick = { },
+                    onClick = { onOperadorClick('-') },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
                 ) { Text(text = "-") }
@@ -264,14 +298,14 @@ fun Calculadora() {
                     Text(text = ".")
                 }
                 Button1(
-                    onClick = { },
+                    onClick = { onIgualClick() },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
                 ) {
                     Text(text = "=")
                 }
                 Button1(
-                    onClick = { },
+                    onClick = { onOperadorClick('+') },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
                 ) { Text(text = "+") }
@@ -279,6 +313,8 @@ fun Calculadora() {
         }
     }
 }
+
+
 
 
 
