@@ -55,6 +55,8 @@ fun Calculadora(modifier: Modifier = Modifier) {
     var numeroAnterior by remember { mutableStateOf("") }
     var operador by remember { mutableStateOf<Char?>(null) }
 
+    //funcao chamada para quando alguem clica num numero
+    //logica com o caso de alguem nao clicar num operador, logo pode meter mais que um numero
     fun onNumeroClick(numero: String) {
         if (operador == null) {
             numeroAtual += numero
@@ -64,14 +66,50 @@ fun Calculadora(modifier: Modifier = Modifier) {
         displayText = numeroAtual
     }
 
+    // Função chamada quando o botão "raiz" é clicado na calculadora
+    fun onRaizClick() {
+        val numero = numeroAtual.toDoubleOrNull()
+
+        if (numero != null && numero >= 0) { // Verifica se o número não é  negativo
+            val resultado = kotlin.math.sqrt(numero)
+            displayText = resultado.toString()
+            numeroAtual = resultado.toString()
+        } else {
+            displayText = "Erro" // Exibe erro se o número for inválido ou negativo
+        }
+    }
+
+    //Função chamada quando um operador (como '+', '-', '*', '/') é clicado na calculadora.
+    // Se `numeroAtual` não estiver vazio, ou seja, se um número foi digitado, a função
+    //  verifica se há um número anterior e um operador já definidos.
     fun onOperadorClick(op: Char) {
         if (numeroAtual.isNotEmpty()) {
-            numeroAnterior = numeroAtual
+            // Se já existe um número anterior e um operador, realiza o cálculo antes de continuar
+            if (numeroAnterior.isNotEmpty() && operador != null) {
+
+                val n1 = numeroAnterior.toDoubleOrNull()
+                val n2 = numeroAtual.toDoubleOrNull()
+                // Se os números forem válidos, realiza a operação com base no operador anterior
+                if (n1 != null && n2 != null) {
+                    val resultado = when (operador) {
+                        '+' -> n1 + n2
+                        '-' -> n1 - n2
+                        '*' -> n1 * n2
+                        '/' -> if (n2 != 0.0) n1 / n2 else "Erro"
+                        else -> null
+                    }
+                    numeroAnterior = resultado.toString()
+                    displayText = numeroAnterior
+                }
+            } else {
+
+                numeroAnterior = numeroAtual
+            }
             numeroAtual = ""
             operador = op
         }
     }
-
+    //Função chamada quando o botão "igual" ('=') é clicado na calculadora.
     fun onIgualClick() {
         val n1 = numeroAnterior.toDoubleOrNull()
         val n2 = numeroAtual.toDoubleOrNull()
@@ -125,28 +163,24 @@ fun Calculadora(modifier: Modifier = Modifier) {
             ) {
                 Button1(
                     onClick = { },
-                    modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
                 ) {
                     Text(text = "MRC")
                 }
                 Button1(
                     onClick = { },
-                    modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
                 ) {
                     Text(text = "M-")
                 }
                 Button1(
                     onClick = { },
-                    modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
                 ) {
                     Text(text = "M+")
                 }
                 Button1(
                     onClick = { },
-                    modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
                 ) { Text(text = "ON/C") }
             }
@@ -155,7 +189,7 @@ fun Calculadora(modifier: Modifier = Modifier) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Button1(
-                    onClick = { },
+                    onClick = { onRaizClick() },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
                 ) {
@@ -222,21 +256,21 @@ fun Calculadora(modifier: Modifier = Modifier) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Button1(
-                    onClick = { },
+                    onClick = { onNumeroClick("4") },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
                 ) {
                     Text(text = "4")
                 }
                 Button1(
-                    onClick = { },
+                    onClick = { onNumeroClick("5") },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
                 ) {
                     Text(text = "5")
                 }
                 Button1(
-                    onClick = { },
+                    onClick = { onNumeroClick("6") },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
                 ) {
@@ -253,21 +287,21 @@ fun Calculadora(modifier: Modifier = Modifier) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Button1(
-                    onClick = { },
+                    onClick = { onNumeroClick("1") },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
                 ) {
                     Text(text = "1")
                 }
                 Button1(
-                    onClick = { },
+                    onClick = { onNumeroClick("2") },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
                 ) {
                     Text(text = "2")
                 }
                 Button1(
-                    onClick = { },
+                    onClick = {onNumeroClick("3") },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
                 ) {
@@ -284,7 +318,7 @@ fun Calculadora(modifier: Modifier = Modifier) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Button1(
-                    onClick = { },
+                    onClick = { onNumeroClick("0") },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
                 ) {
