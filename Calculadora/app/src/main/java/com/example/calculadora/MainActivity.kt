@@ -110,6 +110,7 @@ fun Calculadora(modifier: Modifier = Modifier) {
                         '-' -> n1 - n2
                         '*' -> n1 * n2
                         '/' -> if (n2 != 0.0) n1 / n2 else "Erro"
+                        '%' -> n1 * (n2 / 100)
                         else -> null
                     }
                     numeroAnterior = resultado.toString()
@@ -134,6 +135,7 @@ fun Calculadora(modifier: Modifier = Modifier) {
                 '-' -> n1 - n2
                 '*' -> n1 * n2
                 '/' -> if (n2 != 0.0) n1 / n2 else "Erro"
+                '%' -> n1 * (n2 / 100)
                 else -> null
             }
             displayText = resultado.toString()
@@ -146,7 +148,7 @@ fun Calculadora(modifier: Modifier = Modifier) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(22.dp)
             .border(2.dp, Color.Black)
             .padding(8.dp)
     ) {
@@ -162,7 +164,7 @@ fun Calculadora(modifier: Modifier = Modifier) {
                     .fillMaxWidth()
                     .height(80.dp)
                     .background(Color.LightGray)
-                    .padding(16.dp),
+                    .padding(10.dp),
                 contentAlignment = Alignment.CenterEnd
             ) {
                 Text(
@@ -173,6 +175,7 @@ fun Calculadora(modifier: Modifier = Modifier) {
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Button1(
@@ -210,7 +213,7 @@ fun Calculadora(modifier: Modifier = Modifier) {
                     Text(text = "raiz")
                 }
                 Button1(
-                    onClick = { },
+                    onClick = { onOperadorClick('%') },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
                 ) {
