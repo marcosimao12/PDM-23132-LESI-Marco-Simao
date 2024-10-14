@@ -55,13 +55,27 @@ fun Calculadora(modifier: Modifier = Modifier) {
     var numeroAnterior by remember { mutableStateOf("") }
     var operador by remember { mutableStateOf<Char?>(null) }
 
+
+    fun onPlusMinus() {
+        if (numeroAtual.isNotEmpty()) {
+            if (numeroAtual.startsWith("-")) {
+                numeroAtual = numeroAtual.substring(1)
+            } else {
+                numeroAtual = "-$numeroAtual"
+            }
+            displayText = numeroAtual
+        }
+    }
     //funcao chamada para quando alguem clica num numero
     //logica com o caso de alguem nao clicar num operador, logo pode meter mais que um numero
     fun onNumeroClick(numero: String) {
+        if (numero == "." && numeroAtual.contains(".")){
+            return
+        }
         if (operador == null) {
             numeroAtual += numero
         } else {
-            numeroAtual = numero
+            numeroAtual += numero
         }
         displayText = numeroAtual
     }
@@ -203,7 +217,7 @@ fun Calculadora(modifier: Modifier = Modifier) {
                     Text(text = "%")
                 }
                 Button1(
-                    onClick = { },
+                    onClick = { onPlusMinus() },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
                 ) {
@@ -325,7 +339,7 @@ fun Calculadora(modifier: Modifier = Modifier) {
                     Text(text = "0")
                 }
                 Button1(
-                    onClick = { },
+                    onClick = { onNumeroClick(".") },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
                 ) {
