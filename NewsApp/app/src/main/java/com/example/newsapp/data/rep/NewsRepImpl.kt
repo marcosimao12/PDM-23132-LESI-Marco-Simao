@@ -6,7 +6,11 @@ import com.example.newsapp.data.remote.api.NewsApi
 
 class NewsRepositoryImpl(private val api: NewsApi) : NewsRepository {
     override suspend fun getTopStories(): List<News> {
-        return api.getTopStories().map { it.toNews() }
+        val response = api.getTopStories()
+       /* return api.getTopStories().map { it.toNews() }
+
+        */
+        return response.results.map { it.toNews() }
     }
 }
 

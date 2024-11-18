@@ -12,6 +12,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.newsapp.data.presentation.newscreen.newsviewmodel
 import com.example.newsapp.ui.theme.NewsAppTheme
 
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,3 +38,5 @@ fun GreetingPreview() {
         }
     }
 }
+
+
