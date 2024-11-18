@@ -6,7 +6,7 @@ import com.example.newsapp.data.domain.rep.NewsRepository
 class GetTopStoriesUseCase(
     private val repository: NewsRepository
 ) {
-    suspend operator fun invoke(section: String): List<News> {
-        return repository.getTopStories(section)
+    suspend operator fun invoke(): List<News> {
+        return repository.getTopStories()
     }
 }

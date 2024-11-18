@@ -1,5 +1,7 @@
 package com.example.newsapp.data.remote.model
 
+import com.example.newsapp.data.domain.model.News
+
 
 data class NewsDto(
     val title: String,
@@ -10,7 +12,7 @@ data class NewsDto(
 
 ) {
 
-    fun toDomainModel(): News {
+    fun toNews(): News {
         return News(
             title = title,
             abstract = abstract,

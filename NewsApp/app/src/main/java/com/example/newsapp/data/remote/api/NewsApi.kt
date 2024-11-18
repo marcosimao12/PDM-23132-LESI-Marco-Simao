@@ -5,8 +5,6 @@ import retrofit2.http.GET
 import retrofit2.http.Path
 
 interface NewsApi {
-    @GET("/{section}.json")
-    suspend fun getTopStories(
-        @Path("section") section: String
-    ): NewsDto
+    @GET("/technology.json")
+    suspend fun getTopStories( ): List<NewsDto>
 }
