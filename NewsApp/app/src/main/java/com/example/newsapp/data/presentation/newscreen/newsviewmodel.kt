@@ -3,6 +3,7 @@ package com.example.newsapp.data.presentation.newscreen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.newsapp.data.domain.model.News
+import com.example.newsapp.data.domain.model.NewsApiResponse
 import com.example.newsapp.data.domain.use_case.GetTopStoriesUseCase
 import com.example.newsapp.data.remote.api.RetrofitInstance
 import com.example.newsapp.data.rep.NewsRepositoryImpl
@@ -15,14 +16,14 @@ class newsviewmodel : ViewModel() {
     private val repository = NewsRepositoryImpl(api)
     private val getNewUseCase = GetTopStoriesUseCase(repository)
 
-    val news = MutableStateFlow<List<News>>(emptyList())
+    val news = MutableStateFlow(NewsApiResponse(status = "", copyright = "", section = "", last_updated = "", num_results = 0, results = emptyList()))
 
     fun fetchNews(){
         viewModelScope.launch {
             try {
                 news.value = getNewUseCase()
             } catch (e: Exception) {
-                news.value = emptyList()
+                news.value = NewsApiResponse(status = "", copyright = "", section = "", last_updated = "", num_results = 0, results = emptyList())
             }
         }
     }

@@ -1,6 +1,7 @@
 package com.example.newsapp.data.remote.model
 
 import com.example.newsapp.data.domain.model.News
+import com.example.newsapp.data.domain.model.NewsApiResponse
 
 /*
 data class NewsDto(
@@ -27,7 +28,7 @@ data class NewsDto(
 
 
 // Representing the full API response
-data class NewsApiResponse(
+data class NewsApiResponseDto(
     val status: String,
     val copyright: String,
     val section: String,
@@ -36,6 +37,17 @@ data class NewsApiResponse(
     val results: List<NewsDto>
 ) {
     // adicionar o toNews...
+    fun toNewsN(): NewsApiResponse {
+        return NewsApiResponse(
+            status = status,
+            copyright = copyright,
+            section = section,
+            last_updated = last_updated,
+            num_results = num_results,
+            results = results.map{ it.toNews() }
+        )
+
+    }
 }
 
 // Representing each individual article in the results
