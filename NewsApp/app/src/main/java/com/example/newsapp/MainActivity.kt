@@ -65,7 +65,6 @@ fun NewsCard(article: News) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(imageUrl)
-                            .crossfade(true)
                             .build(),
                         contentDescription = "Article Image",
                         contentScale = ContentScale.Crop,
