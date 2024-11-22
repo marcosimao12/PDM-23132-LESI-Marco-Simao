@@ -1,14 +1,14 @@
 package com.example.newsapp.data.domain.model
 
-import com.example.newsapp.data.remote.model.NewsDto
-
 
 data class News(
     val title: String,              // Título da notícia
     val abstract: String?,          // Descrição ou resumo
     val url: String,                // URL da notícia completa
     val publishedDate: String,      // Data de publicação
-    val section: String            // Seção da notícia
+    val section: String,
+    val byline: String,
+    val imageUrl: String?
 )
 data class NewsApiResponse(
     val status: String,
