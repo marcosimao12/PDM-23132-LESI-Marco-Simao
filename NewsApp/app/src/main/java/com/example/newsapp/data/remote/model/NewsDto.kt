@@ -45,6 +45,7 @@ data class NewsDto(
         )
     }
 }
+
 data class MultimediaDto(
-    val url: String // Campo de URL para imagem
+    val url: String
 )

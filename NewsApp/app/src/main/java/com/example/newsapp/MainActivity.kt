@@ -1,10 +1,12 @@
 package com.example.newsapp
 
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,9 +27,12 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.example.newsapp.data.domain.model.News
 import com.example.newsapp.data.presentation.newscreen.newsviewmodel
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -37,6 +42,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun GreetingPreview() {
     val newsviewmodel = newsviewmodel()
@@ -51,6 +57,17 @@ fun GreetingPreview() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun formatDate(dateString: String): String {
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX")
+    val dateTime = LocalDateTime.parse(dateString, formatter)
+    val dateFormatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy")
+    return dateTime.format(dateFormatter)
+}
+
+
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NewsCard(article: News) {
     Card(
@@ -82,7 +99,7 @@ fun NewsCard(article: News) {
                             overflow = TextOverflow.Ellipsis
                         )
 
-                        Spacer(modifier = Modifier.height(8.dp)) // Espaço entre título e descrição
+                        Spacer(modifier = Modifier.height(8.dp))
                         article.abstract?.let {
                             Text(
                                 text = it,
@@ -91,13 +108,14 @@ fun NewsCard(article: News) {
                                 overflow = TextOverflow.Ellipsis
                             )
 
-                            Spacer(modifier = Modifier.height(8.dp)) // Espaço entre descrição e data
+                            Spacer(modifier = Modifier.height(8.dp))
                         }
                         Text(
-                            text = "Published on: ${article.publishedDate}",
+                            text = "Published on: ${formatDate(article.publishedDate)}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+
 
                         Text(
                             text = "Author: ${article.byline}",
