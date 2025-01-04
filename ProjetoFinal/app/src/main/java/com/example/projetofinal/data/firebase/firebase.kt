@@ -1,4 +1,4 @@
-package com.example.projetofinal.firebase
+package com.example.projetofinal.data.firebase
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
