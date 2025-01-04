@@ -1,6 +1,6 @@
 package com.example.projetofinal.ui.screen
 
-import ProdutoScreenContent
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,12 +34,8 @@ fun AppNavigation() {
             ProdutoScreen(navController) // Chama a tela de produtos corretamente
         }
         composable("carrinho") {
-            CarrinhoScreen(navController) // Chama a tela de carrinho corretamente
+            CarrinhoScreen(navController)
         }
-
-      //  composable("carrinho") {
-        //    CarrinhoScreen(navController) // Chama a tela de carrinho corretamente
-        //}
     }
 }
 
@@ -52,8 +48,6 @@ fun ProdutoScreen(navController: NavController) {
 fun CarrinhoScreen(navController: NavController) {
     CarrinhoScreenContent()
 }
-
-
 
 @Composable
 fun MainScreen(navController: NavController) {

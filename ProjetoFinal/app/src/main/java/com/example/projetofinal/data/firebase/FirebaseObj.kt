@@ -1,12 +1,13 @@
 package com.example.projetofinal.data.firebase
 
 import android.util.Log
+import com.example.projetofinal.model.Carrinho
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
 
 object FirebaseObj {
-  //  private val db = FirebaseFirestore.getInstance()
+  private val db = FirebaseFirestore.getInstance()
 
     suspend fun getData(
         colecao: String,
@@ -46,16 +47,5 @@ object FirebaseObj {
             null
         }
     }
-
-
-  //  fun adicionarProduto(produto: Produto) {
-    //    db.collection("produtos")
-      //      .add(produto)
-        //    .addOnSuccessListener { documentReference ->
-          //      Log.d("FirebaseObj", "Produto adicionado com ID: ${documentReference.id}")
-           // }
-            //.addOnFailureListener { e ->
-              //  Log.e("FirebaseObj", "Erro ao adicionar produto", e)
-            //}
-    //}
 }
+

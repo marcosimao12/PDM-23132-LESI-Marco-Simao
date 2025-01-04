@@ -1,8 +1,8 @@
 package com.example.projetofinal.model
 
-data class CarrinhoItem(
-    val produtoId: String,
-    val nome: String,
-    var quantidade: Int = 1
+data class Carrinho(
+    val id: String = "",          // ID do carrinho no Firestore
+    val userId: String = "",      // Usuário (dono) do carrinho
+    val itens: List<CarrinhoItem> = emptyList()
 )
 
