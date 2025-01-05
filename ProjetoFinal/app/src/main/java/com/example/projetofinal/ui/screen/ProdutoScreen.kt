@@ -49,7 +49,7 @@ fun ProdutoScreenContent(
 
     // Carrega os produtos e (opcionalmente) cria/busca o carrinho do user logado
     LaunchedEffect(Unit) {
-        produtoViewModel.buscarProdutos()
+        produtoViewModel.listenProdutosEmTempoReal()
 
         // Se quisermos criar/buscar o carrinho do próprio user logado na inicialização:
         currentUserEmail?.let { email ->
@@ -67,7 +67,6 @@ fun ProdutoScreenContent(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            // -------------- DROPDOWN: Meu Carrinho ou Outro Usuário --------------
             ExposedDropdownMenuBox(
                 expanded = expanded,
                 onExpandedChange = { expanded = !expanded },
