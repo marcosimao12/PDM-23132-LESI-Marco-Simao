@@ -34,23 +34,26 @@ fun ProdutoScreenContent(
     produtoViewModel: ProdutoViewModel = viewModel(),
     carrinhoViewModel: CarrinhoViewModel = viewModel()
 ) {
+    // Observa a lista de produtos
     val produtos by produtoViewModel.produtos.collectAsState()
 
-    // Estado para o dropdown
+    // Obter o usuário atual
+    val currentUser = FirebaseAuth.getInstance().currentUser
+    // Tentar pegar o e-mail do usuário (pode ser null se não estiver logado ou se o usuário não tiver e-mail)
+    val currentUserEmail = currentUser?.email
+
+    // Dropdown para escolher em qual carrinho adicionar (meu ou outro usuário)
     var expanded by remember { mutableStateOf(false) }
     var selectedOption by remember { mutableStateOf("Meu carrinho") }
-    var outroUserId by remember { mutableStateOf("") }
+    var outroUserEmail by remember { mutableStateOf("") }
 
-    // Pega o usuário atual (se existir)
-    val currentUser = FirebaseAuth.getInstance().currentUser
-
+    // Carrega os produtos e (opcionalmente) cria/busca o carrinho do user logado
     LaunchedEffect(Unit) {
         produtoViewModel.buscarProdutos()
 
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        if (currentUser != null) {
-            val userId = currentUser.uid
-            carrinhoViewModel.buscarOuCriarCarrinho(userId)
+        // Se quisermos criar/buscar o carrinho do próprio user logado na inicialização:
+        currentUserEmail?.let { email ->
+            carrinhoViewModel.buscarOuCriarCarrinhoPorEmail(email)
         }
     }
 
@@ -96,7 +99,7 @@ fun ProdutoScreenContent(
                         text = { Text("Meu carrinho") },
                         onClick = {
                             selectedOption = "Meu carrinho"
-                            outroUserId = "" // limpa qualquer valor de outroUserId
+                            outroUserEmail = ""
                             expanded = false
                         }
                     )
@@ -110,12 +113,12 @@ fun ProdutoScreenContent(
                 }
             }
 
-            // Se for "Outro usuário", mostra o campo para digitar ID
+            // Se for "Outro usuário", mostra o campo para digitar o E-MAIL do outro usuário
             if (selectedOption == "Outro usuário") {
                 OutlinedTextField(
-                    value = outroUserId,
-                    onValueChange = { outroUserId = it },
-                    label = { Text("ID do outro usuário") },
+                    value = outroUserEmail,
+                    onValueChange = { outroUserEmail = it },
+                    label = { Text("E-mail do outro usuário") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
@@ -133,6 +136,7 @@ fun ProdutoScreenContent(
                     ProdutoItem(
                         produto = produto,
                         onAddToCart = { produtoSelecionado ->
+                            // Transforma Produto em CarrinhoItem
                             val item = CarrinhoItem(
                                 produtoId = produtoSelecionado.id.toString(),
                                 nome = produtoSelecionado.nome,
@@ -140,28 +144,27 @@ fun ProdutoScreenContent(
                                 quantidade = 1
                             )
 
-                            // Verifica a opção escolhida:
+                            // Verifica a opção escolhida no dropdown
                             if (selectedOption == "Meu carrinho") {
-                                // Só funciona se tiver user logado
-                                val userIdLogado = currentUser?.uid
-                                if (userIdLogado != null) {
-                                    // Adiciona no carrinho do user logado
-                                    carrinhoViewModel.adicionarItemAoMeuCarrinho(
-                                        userIdLogado,
-                                        item
+                                // Se não houver user ou userEmail, não conseguimos adicionar
+                                if (currentUserEmail != null) {
+                                    // Adiciona item ao carrinho do user (via email)
+                                    carrinhoViewModel.adicionarItemAoCarrinhoPorEmail(
+                                        ownerEmail = currentUserEmail,
+                                        item = item
                                     )
                                 } else {
-                                    // Se não houver user, mostre um erro ou peça para logar
+                                    // Exibir mensagem: "Faça login" ou algo do tipo
                                 }
                             } else {
                                 // Outro usuário
-                                if (outroUserId.isNotBlank()) {
-                                    carrinhoViewModel.adicionarItemAoMeuCarrinho(
-                                        outroUserId,
-                                        item
+                                if (outroUserEmail.isNotBlank()) {
+                                    carrinhoViewModel.adicionarItemAoCarrinhoPorEmail(
+                                        ownerEmail = outroUserEmail,
+                                        item = item
                                     )
                                 } else {
-                                    // Se não preencheu ID, mostre aviso
+                                    // Mensagem de erro: "Preencha o e-mail do outro user"
                                 }
                             }
                         }

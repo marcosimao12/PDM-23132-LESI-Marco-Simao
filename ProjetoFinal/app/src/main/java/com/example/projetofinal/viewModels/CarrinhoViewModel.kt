@@ -19,109 +19,79 @@ class CarrinhoViewModel : ViewModel() {
     private val _listaCarrinhos = MutableStateFlow<List<Carrinho>>(emptyList())
     val listaCarrinhos: StateFlow<List<Carrinho>> get() = _listaCarrinhos
 
-    /**
-     * Cria um novo carrinho para o userId especificado e atualiza o fluxo carrinhoAtual.
-     */
-    fun criarCarrinho(userId: String) {
+
+    // Carregar carrinhos de um e-mail (pode ter 1 ou vários)
+    fun carregarCarrinhosPorEmail(email: String) {
         viewModelScope.launch {
-            val cartId = repository.criarCarrinhoParaUsuario(userId)
+            val carrinhos = repository.getCarrinhosPorEmail(email)
+            _listaCarrinhos.value = carrinhos
+            // Se quiser setar um carrinho como "atual" (ex: o primeiro):
+            _carrinhoAtual.value = carrinhos.firstOrNull()
+        }
+    }
+
+    // Exemplo de método que autoriza outro e-mail a usar o carrinho
+    fun autorizarEmail(cartId: String, novoEmail: String) {
+        viewModelScope.launch {
+            repository.autorizarOutroEmail(cartId, novoEmail)
+            // Atualizar local
+            val atualizado = repository.getCarrinhoPorId(cartId)
+            _carrinhoAtual.value = atualizado
+        }
+    }
+
+
+    // Adiciona item se quem está adicionando for dono ou autorizado
+    fun adicionarItemSeAutorizado(cartId: String, emailQuemAdiciona: String, item: CarrinhoItem) {
+        viewModelScope.launch {
+            val carrinho = repository.getCarrinhoPorId(cartId)
+            if (carrinho != null) {
+                val podeAdicionar = (
+                        carrinho.ownerEmail == emailQuemAdiciona ||
+                                carrinho.authorizedEmails.contains(emailQuemAdiciona)
+                        )
+                if (podeAdicionar) {
+                    repository.adicionarItemAoCarrinho(cartId, item)
+                    val carrinhoAtualizado = repository.getCarrinhoPorId(cartId)
+                    _carrinhoAtual.value = carrinhoAtualizado
+                } else {
+                    // Não autorizado
+                    // Pode lançar exceção, ou expor um StateFlow de erro
+                }
+            }
+        }
+    }
+    fun buscarOuCriarCarrinhoPorEmail(email: String) {
+        viewModelScope.launch {
+            val cartId = repository.criarCarrinhoPorEmail(email)
+            // (ou se quiser só buscar, use getCarrinhosPorEmail)
             if (!cartId.isNullOrEmpty()) {
-                // Carrega o carrinho recém-criado
                 val carrinho = repository.getCarrinhoPorId(cartId)
                 _carrinhoAtual.value = carrinho
             }
         }
     }
 
-    /**
-     * Adiciona um item ao carrinho atual (baseado em carrinhoAtual).
-     */
-    fun adicionarItemAoCarrinho(item: CarrinhoItem) {
+    fun adicionarItemAoCarrinhoPorEmail(ownerEmail: String, item: CarrinhoItem) {
         viewModelScope.launch {
-            val cartId = _carrinhoAtual.value?.id ?: return@launch
-            val sucesso = repository.adicionarItemAoCarrinho(cartId, item)
-            if (sucesso) {
-                // Atualiza o carrinhoAtual local
-                val carrinhoAtualizado = repository.getCarrinhoPorId(cartId)
-                _carrinhoAtual.value = carrinhoAtualizado
-            }
-        }
-    }
-
-    /**
-     * Carrega um carrinho específico por ID e atualiza o estado.
-     */
-    fun carregarCarrinhoPorId(cartId: String) {
-        viewModelScope.launch {
-            val carrinho = repository.getCarrinhoPorId(cartId)
-            _carrinhoAtual.value = carrinho
-        }
-    }
-
-    /**
-     * Carrega todos os carrinhos de um usuário e atualiza o _listaCarrinhos.
-     */
-    fun carregarCarrinhosPorUser(userId: String) {
-        viewModelScope.launch {
-            val carrinhos = repository.getCarrinhosPorUserId(userId)
-            // Se quiser exibir todos, guarde em _listaCarrinhos
-            _listaCarrinhos.value = carrinhos
-            // Se quiser mostrar no "carrinhoAtual", defina o primeiro carrinho (ou sua própria lógica):
-            _carrinhoAtual.value = carrinhos.firstOrNull()
-        }
-    }
-
-    /**
-     * Carrega todos os carrinhos do sistema (caso queira ver o de todos os usuários).
-     */
-    fun carregarTodosCarrinhos() {
-        viewModelScope.launch {
-            val carrinhos = repository.getTodosCarrinhos()
-            _listaCarrinhos.value = carrinhos
-        }
-    }
-    fun adicionarItemAoMeuCarrinho(userId: String, item: CarrinhoItem) {
-        viewModelScope.launch {
-            // 1) Verifica se existe carrinho para esse user
-            val listaCarrinhos = repository.getCarrinhosPorUserId(userId)
-
-            // Neste exemplo, vamos assumir que cada usuário só tem 1 carrinho.
-            val carrinhoExistente = listaCarrinhos.firstOrNull()
+            // 1) Pega carrinhos desse e-mail
+            val carrinhos = repository.getCarrinhosPorEmail(ownerEmail)
+            val carrinhoExistente = carrinhos.firstOrNull()
 
             if (carrinhoExistente == null) {
-                // Cria um carrinho novo
-                val cartId = repository.criarCarrinhoParaUsuario(userId)
+                // Se não existe, cria
+                val cartId = repository.criarCarrinhoPorEmail(ownerEmail)
                 if (!cartId.isNullOrEmpty()) {
                     repository.adicionarItemAoCarrinho(cartId, item)
                     _carrinhoAtual.value = repository.getCarrinhoPorId(cartId)
                 }
             } else {
-                // Já existe carrinho, então só adicionamos
+                // Se já existe, adiciona direto
                 repository.adicionarItemAoCarrinho(carrinhoExistente.id, item)
                 _carrinhoAtual.value = repository.getCarrinhoPorId(carrinhoExistente.id)
             }
         }
     }
-    fun buscarOuCriarCarrinho(userId: String) {
-        viewModelScope.launch {
-            // 1) Buscar se há carrinhos para esse user
-            val listaCarrinhos = repository.getCarrinhosPorUserId(userId)
-            val carrinhoExistente = listaCarrinhos.firstOrNull()
-
-            if (carrinhoExistente == null) {
-                // 2) Se não existe, criar
-                val cartId = repository.criarCarrinhoParaUsuario(userId)
-                if (!cartId.isNullOrEmpty()) {
-                    // Pega o carrinho recém-criado
-                    val novoCarrinho = repository.getCarrinhoPorId(cartId)
-                    _carrinhoAtual.value = novoCarrinho
-                }
-            } else {
-                // 3) Se já existe, usar o primeiro carrinho (ou você define a lógica)
-                _carrinhoAtual.value = carrinhoExistente
-            }
-        }
-    }
-
 
 }
+
