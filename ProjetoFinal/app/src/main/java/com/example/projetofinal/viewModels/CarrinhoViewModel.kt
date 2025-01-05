@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.projetofinal.data.repository.CarrinhoRepository
 import com.example.projetofinal.model.Carrinho
 import com.example.projetofinal.model.CarrinhoItem
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -20,15 +21,27 @@ class CarrinhoViewModel : ViewModel() {
     val listaCarrinhos: StateFlow<List<Carrinho>> get() = _listaCarrinhos
 
 
-    // Carregar carrinhos de um e-mail (pode ter 1 ou vários)
     fun carregarCarrinhosPorEmail(email: String) {
         viewModelScope.launch {
             val carrinhos = repository.getCarrinhosPorEmail(email)
-            _listaCarrinhos.value = carrinhos
-            // Se quiser setar um carrinho como "atual" (ex: o primeiro):
-            _carrinhoAtual.value = carrinhos.firstOrNull()
+            val currentUserEmail = FirebaseAuth.getInstance().currentUser?.email
+
+
+            val carrinhosAutorizados = carrinhos.filter { carrinho ->
+                currentUserEmail != null && (
+                        carrinho.ownerEmail == currentUserEmail
+                                || carrinho.authorizedEmails.contains(currentUserEmail)
+                        )
+            }
+
+            val primeiroCarrinho = carrinhosAutorizados.firstOrNull()
+
+            // Atualiza o estado:
+            _listaCarrinhos.value = carrinhosAutorizados
+            _carrinhoAtual.value = primeiroCarrinho
         }
     }
+
 
     // Exemplo de método que autoriza outro e-mail a usar o carrinho
     fun autorizarEmail(cartId: String, novoEmail: String) {
@@ -74,24 +87,36 @@ class CarrinhoViewModel : ViewModel() {
 
     fun adicionarItemAoCarrinhoPorEmail(ownerEmail: String, item: CarrinhoItem) {
         viewModelScope.launch {
-            // 1) Pega carrinhos desse e-mail
+            // 1) Pega todos os carrinhos do ownerEmail
             val carrinhos = repository.getCarrinhosPorEmail(ownerEmail)
-            val carrinhoExistente = carrinhos.firstOrNull()
+            val currentUserEmail = FirebaseAuth.getInstance().currentUser?.email
+
+            // 2) Filtra só carrinhos onde o user atual é dono ou autorizado
+            val carrinhoExistente = carrinhos.firstOrNull { c ->
+                currentUserEmail != null && (
+                        c.ownerEmail == currentUserEmail ||
+                                c.authorizedEmails.contains(currentUserEmail)
+                        )
+            }
 
             if (carrinhoExistente == null) {
-                // Se não existe, cria
-                val cartId = repository.criarCarrinhoPorEmail(ownerEmail)
-                if (!cartId.isNullOrEmpty()) {
-                    repository.adicionarItemAoCarrinho(cartId, item)
-                    _carrinhoAtual.value = repository.getCarrinhoPorId(cartId)
-                }
-            } else {
-                // Se já existe, adiciona direto
-                repository.adicionarItemAoCarrinho(carrinhoExistente.id, item)
+                // Se não existe carrinho ou o usuário não é autorizado, não faz nada
+                // (Opcional: você poderia criar o carrinho se 'currentUserEmail == ownerEmail')
+                return@launch
+            }
+
+            // 3) Se existe e o user é autorizado, adiciona/incrementa o item no carrinho
+            val sucesso = repository.adicionarItemAoCarrinho(carrinhoExistente.id, item)
+            if (sucesso) {
+                // 4) Atualiza _carrinhoAtual local
                 _carrinhoAtual.value = repository.getCarrinhoPorId(carrinhoExistente.id)
+            } else {
+                // Tratamento de erro (ex.: falha de rede)
             }
         }
     }
+
+
 
 }
 

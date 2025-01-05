@@ -31,7 +31,7 @@ fun AppNavigation() {
             MainScreen(navController)
         }
         composable("produtos") {
-            ProdutoScreen(navController) // Chama a tela de produtos corretamente
+            ProdutoScreen(navController)
         }
         composable("carrinho") {
             CarrinhoScreen(navController)
@@ -41,7 +41,7 @@ fun AppNavigation() {
 
 @Composable
 fun ProdutoScreen(navController: NavController) {
-    ProdutoScreenContent() // Chama o Composable correto que exibe a lista de produtos
+    ProdutoScreenContent()
 }
 
 @Composable

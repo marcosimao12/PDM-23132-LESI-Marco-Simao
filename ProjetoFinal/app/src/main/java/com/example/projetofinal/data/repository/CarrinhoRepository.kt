@@ -1,7 +1,6 @@
 package com.example.projetofinal.data.repository
 
-import android.util.Log
-import com.example.projetofinal.data.firebase.FirebaseObj
+
 import com.example.projetofinal.model.Carrinho
 import com.example.projetofinal.model.CarrinhoItem
 import com.google.firebase.firestore.FieldValue
@@ -62,7 +61,6 @@ class CarrinhoRepository {
         }
     }
 
-    // Busca carrinho por ID
     suspend fun getCarrinhoPorId(cartId: String): Carrinho? {
         return try {
             val doc = carrinhosCollection.document(cartId).get().await()
@@ -78,22 +76,40 @@ class CarrinhoRepository {
     // Adiciona item ao carrinho (sem verificar autorização aqui)
     suspend fun adicionarItemAoCarrinho(cartId: String, item: CarrinhoItem): Boolean {
         return try {
-            // Busca o carrinho atual
             val snapshot = carrinhosCollection.document(cartId).get().await()
             if (snapshot.exists()) {
                 val carrinho = snapshot.toObject(Carrinho::class.java)
                 if (carrinho != null) {
-                    val novaLista = carrinho.itens.toMutableList()
-                    novaLista.add(item)
+                    val itensAtualizados = carrinho.itens.toMutableList()
+                    val indiceExistente = itensAtualizados.indexOfFirst {
+                        it.produtoId == item.produtoId
+                    }
 
-                    // Atualiza a lista de itens
+                    if (indiceExistente >= 0) {
+                        val itemExistente = itensAtualizados[indiceExistente]
+                        val novaQuantidade = itemExistente.quantidade + item.quantidade
+                        val precoUnitario = itemExistente.preco / itemExistente.quantidade
+
+                        val itemAtualizado = itemExistente.copy(
+                            quantidade = novaQuantidade,
+                            preco = precoUnitario * novaQuantidade
+                        )
+                        itensAtualizados[indiceExistente] = itemAtualizado
+                    } else {
+                        itensAtualizados.add(item)
+                    }
+
                     carrinhosCollection.document(cartId)
-                        .update("itens", novaLista)
+                        .update("itens", itensAtualizados)
                         .await()
-                    return true
+
+                    true
+                } else {
+                    false
                 }
+            } else {
+                false
             }
-            false
         } catch (e: Exception) {
             e.printStackTrace()
             false
