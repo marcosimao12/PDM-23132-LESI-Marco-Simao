@@ -10,5 +10,5 @@ data class Produto(
     val nome: String,
     val preco: Double,
     val descricao: String,
-    val imagemUrl: String? = null
+    val url: String
 )

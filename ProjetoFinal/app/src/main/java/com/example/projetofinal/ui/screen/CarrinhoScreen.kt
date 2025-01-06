@@ -5,51 +5,74 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.projetofinal.viewModels.CarrinhoViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import coil3.compose.AsyncImage
+import com.example.projetofinal.model.Carrinho
 import com.example.projetofinal.model.CarrinhoItem
+import com.example.projetofinal.viewModels.CarrinhoViewModel
 import com.google.firebase.auth.FirebaseAuth
 
 class CarrinhoScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            CarrinhoScreenContent()
+            val navController = rememberNavController()
+            CarrinhoScreenContent(navController)
         }
     }
 }
 
-/**
- * Tela principal do Carrinho.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CarrinhoScreenContent(
+    navController: NavController,
     carrinhoViewModel: CarrinhoViewModel = viewModel()
 ) {
-    // Obtemos o usuário atual do FirebaseAuth
-    val currentUser = FirebaseAuth.getInstance().currentUser
-    // E-mail do usuário, se estiver logado
-    val currentUserEmail = currentUser?.email
+    LaunchedEffect(Unit) {
+        carrinhoViewModel.carregarCarrinhosAutorizadosDoUsuario()
+    }
 
-    // Observa o carrinho atual (para exibir na tela)
+    val carrinhosAutorizados by carrinhoViewModel.carrinhosAutorizados.collectAsState()
     val carrinhoAtual by carrinhoViewModel.carrinhoAtual.collectAsState()
-
-    // Controle do dropdown para "Meu carrinho" ou "Outro usuário"
+    var selectedCarrinho by remember { mutableStateOf<Carrinho?>(null) }
     var expanded by remember { mutableStateOf(false) }
-    var selectedOption by remember { mutableStateOf("Meu carrinho") }
-    var outroUserEmail by remember { mutableStateOf("") }
+    val totalCompra = carrinhoAtual?.itens?.sumOf { it.preco } ?: 0.0
 
-    // Controle para exibir o Dialog de autorização
+
+    LaunchedEffect(selectedCarrinho?.id) {
+        val cartId = selectedCarrinho?.id
+        if (!cartId.isNullOrBlank()) {
+            carrinhoViewModel.listenCarrinhoEmTempoReal(cartId)
+        }
+    }
+
+
     var showAutorizarDialog by remember { mutableStateOf(false) }
+    val currentUserEmail = FirebaseAuth.getInstance().currentUser?.email
+    var showPagamentoDialog by remember { mutableStateOf(false) }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Carrinho") }) }
+        topBar = { TopAppBar(title = { Text("Carrinho") },
+            navigationIcon = {
+                IconButton(onClick = {
+                    navController.navigate("main")
+                }) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = "Voltar"
+                    )
+                }
+            }
+            ) }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -57,14 +80,21 @@ fun CarrinhoScreenContent(
                 .padding(16.dp)
                 .fillMaxSize()
         ) {
-            // ---------------- Dropdown "Meu carrinho" ou "Outro usuário" ----------------
             ExposedDropdownMenuBox(
                 expanded = expanded,
                 onExpandedChange = { expanded = !expanded }
             ) {
+                val labelSelecionado = if (selectedCarrinho == null) {
+                    "Selecione um carrinho"
+                } else {
+                    val dono = selectedCarrinho?.ownerEmail ?: ""
+                    if (dono == currentUserEmail) "Meu carrinho"
+                    else "Carrinho de $dono"
+                }
+
                 TextField(
                     readOnly = true,
-                    value = selectedOption,
+                    value = labelSelecionado,
                     onValueChange = {},
                     label = { Text("Ver carrinho de:") },
                     trailingIcon = {
@@ -82,77 +112,68 @@ fun CarrinhoScreenContent(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
-                    DropdownMenuItem(
-                        text = { Text("Meu carrinho") },
-                        onClick = {
-                            selectedOption = "Meu carrinho"
-                            outroUserEmail = ""
-                            expanded = false
+                    carrinhosAutorizados.forEach { carrinho ->
+                        val dono = carrinho.ownerEmail
+                        val label = if (dono == currentUserEmail)
+                            "Meu carrinho"
+                        else
+                            "Carrinho de $dono"
 
-                            // Se tiver userEmail, carrega o carrinho desse e-mail
-                            currentUserEmail?.let { email ->
-                                carrinhoViewModel.carregarCarrinhosPorEmail(email)
+                        DropdownMenuItem(
+                            text = { Text(label) },
+                            onClick = {
+                                selectedCarrinho = carrinho
+                                expanded = false
                             }
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Outro usuário") },
-                        onClick = {
-                            selectedOption = "Outro usuário"
-                            expanded = false
-                        }
-                    )
-                }
-            }
-
-            // Se a opção for "Outro usuário", mostra um campo para digitar o e-mail
-            if (selectedOption == "Outro usuário") {
-                OutlinedTextField(
-                    value = outroUserEmail,
-                    onValueChange = { outroUserEmail = it },
-                    label = { Text("E-mail do outro usuário") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                )
-                Button(
-                    onClick = {
-                        if (outroUserEmail.isNotBlank()) {
-                            carrinhoViewModel.carregarCarrinhosPorEmail(outroUserEmail)
-                        }
+                        )
                     }
-                ) {
-                    Text("Ver carrinho do outro usuário")
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ---------------- Exibe carrinhoAtual ----------------
             if (carrinhoAtual != null) {
                 Text(text = "Carrinho ID: ${carrinhoAtual?.id}")
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Lista de itens do carrinho
                 carrinhoAtual?.itens?.forEach { item ->
                     CarrinhoItemView(item)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
+                Text(text = "Total:${totalCompra}€", style = MaterialTheme.typography.titleMedium)
 
-                // Botão para abrir o Dialog de autorização
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(onClick = { showPagamentoDialog = true }) {
+                    Text("Finalizar Compra")
+                }
+
                 Button(
                     onClick = { showAutorizarDialog = true }
                 ) {
                     Text("Autorizar outras pessoas ao carrinho")
                 }
             } else {
-                Text("Nenhum carrinho carregado ou não encontrado.")
+                Text("Nenhum carrinho selecionado ou não encontrado.")
             }
         }
     }
 
-    // Se showAutorizarDialog == true, exibimos nosso AlertDialog para autorizar e-mail
+    if (showPagamentoDialog) {
+        EscolherPagamentoDialog(
+            onDismiss = { showPagamentoDialog = false },
+            onConfirm = { tipoPagamento ->
+                // Chamamos a função de "finalizar compra"
+                carrinhoAtual?.id?.let { cartId ->
+                    carrinhoViewModel.finalizarCompra(cartId)
+                }
+                showPagamentoDialog = false
+                // Poderia mandar o user para a tela "Obrigado pela compra"
+                navController.navigate("main")
+            }
+        )
+    }
+
     if (showAutorizarDialog) {
         AutorizarOutroUsuarioDialog(
             carrinhoViewModel = carrinhoViewModel,
@@ -161,9 +182,51 @@ fun CarrinhoScreenContent(
     }
 }
 
-/**
- * Mostra o item do carrinho (produto, quantidade e preço).
- */
+@Composable
+fun EscolherPagamentoDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    var selectedOption by remember { mutableStateOf("MbWay") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Escolha a forma de pagamento") },
+        text = {
+            Column {
+                // Botões de Radio ou algo similar
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(
+                        selected = (selectedOption == "MbWay"),
+                        onClick = { selectedOption = "MbWay" }
+                    )
+                    Text("MbWay")
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(
+                        selected = (selectedOption == "Crypto"),
+                        onClick = { selectedOption = "Crypto" }
+                    )
+                    Text("Crypto")
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(selectedOption) }) {
+                Text("Confirmar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
+}
+
+
+
+
 @Composable
 fun CarrinhoItemView(item: CarrinhoItem) {
     Card(
@@ -173,16 +236,14 @@ fun CarrinhoItemView(item: CarrinhoItem) {
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+
             Text(text = item.nome, style = MaterialTheme.typography.titleMedium)
             Text(text = "Qtd: ${item.quantidade}")
-            Text(text = "Preço: R\$ ${item.preco}")
+            Text(text = "Preço:${item.preco} €")
         }
     }
 }
 
-/**
- * AlertDialog (popup) para digitar e autorizar o e-mail de outro usuário.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AutorizarOutroUsuarioDialog(
@@ -193,7 +254,7 @@ fun AutorizarOutroUsuarioDialog(
     var emailAutorizado by remember { mutableStateOf("") }
 
     AlertDialog(
-        onDismissRequest = { onDismiss() },
+        onDismissRequest = onDismiss,
         title = { Text("Autorizar outra pessoa") },
         text = {
             Column {
@@ -211,11 +272,10 @@ fun AutorizarOutroUsuarioDialog(
             TextButton(
                 onClick = {
                     val cartId = carrinhoAtual?.id
-                    if (!emailAutorizado.isBlank() && cartId != null) {
-                        // Autoriza o e-mail no carrinho
+                    if (!emailAutorizado.isBlank() && !cartId.isNullOrBlank()) {
                         carrinhoViewModel.autorizarEmail(cartId, emailAutorizado)
                     }
-                    onDismiss() // Fecha o diálogo
+                    onDismiss()
                 }
             ) {
                 Text("Autorizar")

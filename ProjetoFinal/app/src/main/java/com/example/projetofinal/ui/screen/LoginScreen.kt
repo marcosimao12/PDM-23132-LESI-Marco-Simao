@@ -17,10 +17,8 @@ fun LoginScreen(navController: NavController) {
     var email by remember { mutableStateOf(TextFieldValue("")) }
     var password by remember { mutableStateOf(TextFieldValue("")) }
     var errorMessage by remember { mutableStateOf("") }
-
     val auth = FirebaseAuth.getInstance()
 
-    // Função de login
     fun loginUser() {
         if (email.text.isEmpty() || password.text.isEmpty()) {
             errorMessage = "E-mail ou senha não podem estar vazios."

@@ -20,47 +20,58 @@ class ProdutoViewModel : ViewModel() {
     val produtos: StateFlow<List<Produto>> get() = _produtos
 
     fun listenProdutosEmTempoReal() {
-        // Cancela listener anterior para evitar duplicações
         produtosListener?.remove()
 
-        // Chama a função genérica
         produtosListener = FirebaseObj.listenToData(
-            collection = "produtos",      // Nome da coleção
-            documentId = null,           // null => queremos ouvir a coleção inteira
+            collection = "produtos",
+            documentId = null,
             onDataChanged = { listMap ->
                 if (listMap != null) {
-                    // Convertemos cada Map em um Produto
-                    val listaProdutos = listMap.map { mapToProduto(it) }
-                    _produtos.value = listaProdutos
+                    viewModelScope.launch {
+                        val listaProdutos = listMap.map { mapData ->
+                            val produtoBasico = mapToProduto(mapData)
+                            // Se 'produtoBasico.url' for só o path, converta:
+                            if (produtoBasico.url.isNotBlank()) {
+                                val publicLink = FirebaseObj.getImageUrl(produtoBasico.url)
+                                if (!publicLink.isNullOrBlank()) {
+                                    produtoBasico.copy(url = publicLink)
+                                } else {
+                                    produtoBasico
+                                }
+                            } else {
+                                produtoBasico
+                            }
+                        }
+                        _produtos.value = listaProdutos
+                    }
                 } else {
                     _produtos.value = emptyList()
                 }
             },
             onError = { e ->
                 e.printStackTrace()
-                // Trate o erro, por exemplo, mandar logs ou exibir mensagem
             }
         )
     }
 
+
     private fun mapToProduto(data: Map<String, Any>): Produto {
-        // Ajustar conforme seu data class
         val id = data["id"] as? String ?: ""
         val nome = data["nome"] as? String ?: ""
         val preco = data["preco"] as? Double ?: 0.0
         val descricao = data["descricao"] as? String ?: ""
-
+        val url = data["url"] as? String ?: ""
         return Produto(
             id = id,
             nome = nome,
             preco = preco,
-            descricao = descricao
+            descricao = descricao,
+            url = url
         )
     }
 
     override fun onCleared() {
         super.onCleared()
-        // Remove o listener para evitar vazamento de memória
         produtosListener?.remove()
     }
 }

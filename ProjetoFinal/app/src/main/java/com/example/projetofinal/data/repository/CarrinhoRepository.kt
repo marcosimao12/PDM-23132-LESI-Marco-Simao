@@ -1,6 +1,7 @@
 package com.example.projetofinal.data.repository
 
 
+import android.util.Log
 import com.example.projetofinal.model.Carrinho
 import com.example.projetofinal.model.CarrinhoItem
 import com.google.firebase.firestore.FieldValue
@@ -12,52 +13,35 @@ class CarrinhoRepository {
     private val db = FirebaseFirestore.getInstance()
     private val carrinhosCollection = db.collection("carrinho")
 
-    // Cria um carrinho pelo e-mail do dono, caso não exista
+
     suspend fun criarCarrinhoPorEmail(ownerEmail: String): String? {
         return try {
-            // Verifica se já existe (opcional, pode ser feito no ViewModel)
             val snapshot = carrinhosCollection
                 .whereEqualTo("ownerEmail", ownerEmail)
                 .get()
                 .await()
 
             if (!snapshot.isEmpty) {
-                // Já existe pelo menos um carrinho para esse e-mail. Retorna o primeiro encontrado
                 return snapshot.documents.first().id
             }
 
-            // Se não existe, cria um novo
             val novoCarrinho = Carrinho(
-                id = "",                 // Gerado automaticamente
+                id = "",
                 ownerEmail = ownerEmail,
                 authorizedEmails = emptyList(),
                 itens = emptyList()
             )
             val docRef = carrinhosCollection.add(novoCarrinho).await()
-            // Atualiza o "id"
+
+            // Atualiza o ID
             carrinhosCollection.document(docRef.id)
                 .update("id", docRef.id)
                 .await()
 
             docRef.id
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("CRIAR_CARRINHO", "Erro ao criar carrinho: ${e.message}", e)
             null
-        }
-    }
-
-    // Retorna todos os carrinhos cujo ownerEmail = email
-    suspend fun getCarrinhosPorEmail(email: String): List<Carrinho> {
-        return try {
-            val snapshot = carrinhosCollection
-                .whereEqualTo("ownerEmail", email)
-                .get()
-                .await()
-
-            snapshot.documents.mapNotNull { it.toObject(Carrinho::class.java) }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            emptyList()
         }
     }
 
@@ -73,7 +57,6 @@ class CarrinhoRepository {
         }
     }
 
-    // Adiciona item ao carrinho (sem verificar autorização aqui)
     suspend fun adicionarItemAoCarrinho(cartId: String, item: CarrinhoItem): Boolean {
         return try {
             val snapshot = carrinhosCollection.document(cartId).get().await()
@@ -128,5 +111,27 @@ class CarrinhoRepository {
             false
         }
     }
+
+    suspend fun getTodosCarrinhos(): List<Carrinho> {
+        return try {
+            val snapshot = db.collection("carrinho").get().await()
+            snapshot.documents.mapNotNull { it.toObject(Carrinho::class.java) }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    suspend fun apagarCarrinho(cartId: String): Boolean {
+        return try {
+            carrinhosCollection.document(cartId).delete().await()
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+
 
 }

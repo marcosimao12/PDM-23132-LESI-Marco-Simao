@@ -3,7 +3,9 @@ package com.example.projetofinal.ui.screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -15,6 +17,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun AppNavigation() {
@@ -41,12 +44,12 @@ fun AppNavigation() {
 
 @Composable
 fun ProdutoScreen(navController: NavController) {
-    ProdutoScreenContent()
+    ProdutoScreenContent(navController)
 }
 
 @Composable
 fun CarrinhoScreen(navController: NavController) {
-    CarrinhoScreenContent()
+    CarrinhoScreenContent(navController)
 }
 
 @Composable
@@ -59,13 +62,23 @@ fun MainScreen(navController: NavController) {
     ) {
         Text("Bem-vindo à Tela Principal!", style = MaterialTheme.typography.titleLarge)
 
-        // Botões para navegar entre as telas
         Button(onClick = { navController.navigate("produtos") }) {
             Text("Ir para Produtos")
         }
 
         Button(onClick = { navController.navigate("carrinho") }) {
             Text("Ir para Carrinho")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = {
+            FirebaseAuth.getInstance().signOut()
+            navController.navigate("login") {
+                popUpTo("main") { inclusive = true }
+            }
+        }) {
+            Text("Logout")
         }
     }
 }
