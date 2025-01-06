@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.coil)
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.0.3")
+    implementation(libs.androidx.navigation.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -1,5 +1,6 @@
 package com.example.newsapp.data.remote.model
 
+import android.net.Uri
 import com.example.newsapp.data.domain.model.News
 import com.example.newsapp.data.domain.model.NewsApiResponse
 
@@ -31,7 +32,8 @@ data class NewsDto(
     val url: String,
     val published_date: String,
     val byline: String,
-    val multimedia: List<MultimediaDto>?
+    val multimedia: List<MultimediaDto>?,
+    val uri: String
 ) {
     fun toNews(): News {
         return News(
@@ -41,7 +43,8 @@ data class NewsDto(
             publishedDate = published_date,
             section = section,
             byline = byline,
-            imageUrl = multimedia?.firstOrNull()?.url
+            imageUrl = multimedia?.firstOrNull()?.url,
+            uri = uri.replace("nyt://article/","")
         )
     }
 }

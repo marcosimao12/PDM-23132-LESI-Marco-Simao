@@ -1,5 +1,7 @@
 package com.example.newsapp.data.domain.model
 
+import android.net.Uri
+
 
 data class News(
     val title: String,              // Título da notícia
@@ -8,7 +10,8 @@ data class News(
     val publishedDate: String,      // Data de publicação
     val section: String,
     val byline: String,
-    val imageUrl: String?
+    val imageUrl: String?,
+    val uri: String?
 )
 data class NewsApiResponse(
     val status: String,
