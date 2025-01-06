@@ -17,16 +17,17 @@ class newListViewModel(): ViewModel() {
     val new = MutableStateFlow<News?>(null)
 
 
-    fun fetchNew(newUri: String){
+    fun fetchNew(newUri: String) {
         viewModelScope.launch {
+            new.value = null
             try {
                 val news = getNewUseCase()
-
                 new.value = news.results.firstOrNull { it.uri == newUri }
             } catch (e: Exception) {
                 new.value = null
             }
         }
     }
+
 
 }

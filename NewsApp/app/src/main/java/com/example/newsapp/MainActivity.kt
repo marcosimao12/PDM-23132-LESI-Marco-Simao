@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -36,6 +37,8 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 class MainActivity : ComponentActivity() {
+    private val newsviewmodel: newsviewmodel by viewModels()
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,7 +50,6 @@ class MainActivity : ComponentActivity() {
                 startDestination = "newsList"
             ) {
                 composable("newsList") {
-                    val newsviewmodel = newsviewmodel()
                     NewsListScreen(navController, newsviewmodel)
                 }
                 composable("newsDetail/{article}") { backStackEntry ->
@@ -60,13 +62,15 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NewsListScreen(navController: NavHostController, newsviewmodel: newsviewmodel) {
     val apiData = newsviewmodel.news.collectAsState()
 
-    if (apiData.value.results.isEmpty()) {
-        LaunchedEffect(Unit) {
+    // Carregar dados apenas se o estado estiver vazio
+    LaunchedEffect(Unit) {
+        if (apiData.value.results.isEmpty()) {
             newsviewmodel.fetchNews()
         }
     }
@@ -77,6 +81,7 @@ fun NewsListScreen(navController: NavHostController, newsviewmodel: newsviewmode
         }
     }
 }
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -145,7 +150,6 @@ fun NewsCard(article: News, navController: NavHostController) {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NewsDetailScreen(articleUri: String, viewModel: newListViewModel) {
-
     val article by viewModel.new.collectAsState()
 
     if (article == null) {
@@ -199,6 +203,7 @@ fun NewsDetailScreen(articleUri: String, viewModel: newListViewModel) {
         )
     }
 }
+
 
 
 @RequiresApi(Build.VERSION_CODES.O)
