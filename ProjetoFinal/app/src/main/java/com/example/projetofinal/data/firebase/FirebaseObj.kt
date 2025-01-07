@@ -104,7 +104,6 @@ object FirebaseObj {
     suspend fun getImageUrl(path: String): String? {
         try {
             val storagerefence: StorageReference = FirebaseStorage.getInstance().reference
-            // Create a reference with an initial file path and name and Download image
             return storagerefence.child(path).downloadUrl.await().toString()
         } catch (e: Exception) {
             e.printStackTrace()

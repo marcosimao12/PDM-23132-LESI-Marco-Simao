@@ -54,7 +54,7 @@ fun ProdutoScreenContent(
 
     LaunchedEffect(Unit) {
         produtoViewModel.listenProdutosEmTempoReal()
-        carrinhoViewModel.carregarCarrinhosAutorizadosDoUsuario()
+        carrinhoViewModel.carregarCarrinhosAutorizadosDoUser()
         currentUserEmail?.let {
             carrinhoViewModel.buscarOuCriarCarrinhoPorEmail(it)
         }

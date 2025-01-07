@@ -168,7 +168,7 @@ fun CarrinhoScreenContent(
                     carrinhoViewModel.finalizarCompra(cartId)
                 }
                 showPagamentoDialog = false
-                // Poderia mandar o user para a tela "Obrigado pela compra"
+                // Podia mandar o user para a tela "Obrigado pela compra"
                 navController.navigate("main")
             }
         )

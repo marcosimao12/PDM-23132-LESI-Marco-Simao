@@ -32,7 +32,7 @@ class CarrinhoViewModel : ViewModel() {
         }
     }
 
-    fun carregarCarrinhosAutorizadosDoUsuario() {
+    fun carregarCarrinhosAutorizadosDoUser() {
         viewModelScope.launch {
             val todosCarrinhos = repository.getTodosCarrinhos()
             val currentUserEmail = FirebaseAuth.getInstance().currentUser?.email
