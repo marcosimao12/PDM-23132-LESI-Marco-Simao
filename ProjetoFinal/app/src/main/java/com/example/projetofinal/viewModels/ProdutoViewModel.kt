@@ -30,7 +30,6 @@ class ProdutoViewModel : ViewModel() {
                     viewModelScope.launch {
                         val listaProdutos = listMap.map { mapData ->
                             val produtoBasico = mapToProduto(mapData)
-                            // Se 'produtoBasico.url' for só o path, converta:
                             if (produtoBasico.url.isNotBlank()) {
                                 val publicLink = FirebaseObj.getImageUrl(produtoBasico.url)
                                 if (!publicLink.isNullOrBlank()) {

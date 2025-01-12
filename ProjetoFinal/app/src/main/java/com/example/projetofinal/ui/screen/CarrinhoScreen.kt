@@ -38,7 +38,7 @@ fun CarrinhoScreenContent(
     carrinhoViewModel: CarrinhoViewModel = viewModel()
 ) {
     LaunchedEffect(Unit) {
-        carrinhoViewModel.carregarCarrinhosAutorizadosDoUsuario()
+        carrinhoViewModel.carregarCarrinhosAutorizadosDoUser()
     }
 
     val carrinhosAutorizados by carrinhoViewModel.carrinhosAutorizados.collectAsState()
@@ -163,12 +163,10 @@ fun CarrinhoScreenContent(
         EscolherPagamentoDialog(
             onDismiss = { showPagamentoDialog = false },
             onConfirm = { tipoPagamento ->
-                // Chamamos a função de "finalizar compra"
                 carrinhoAtual?.id?.let { cartId ->
                     carrinhoViewModel.finalizarCompra(cartId)
                 }
                 showPagamentoDialog = false
-                // Podia mandar o user para a tela "Obrigado pela compra"
                 navController.navigate("main")
             }
         )

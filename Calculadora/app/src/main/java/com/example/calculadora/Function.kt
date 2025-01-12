@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlin.math.sqrt
 
-// Classe responsável pelo estado da calculadora
+
 class CalculatorState {
     var displayText by mutableStateOf("")
     var numeroAtual by mutableStateOf("")

@@ -123,8 +123,8 @@ fun ProdutoScreenContent(
                     onDismissRequest = { expanded = false }
                 ) {
                     carrinhosAutorizados.forEach { carrinho ->
-                        val ehMeu = carrinho.ownerEmail == currentUserEmail
-                        val label = if (ehMeu) "Meu carrinho"
+                        val meu = carrinho.ownerEmail == currentUserEmail
+                        val label = if (meu) "Meu carrinho"
                         else "Carrinho de ${carrinho.ownerEmail}"
 
                         DropdownMenuItem(
